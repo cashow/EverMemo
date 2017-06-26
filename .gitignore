@@ -31,3 +31,7 @@ proguard/
 
 .gradle
 build/
+
+freeline.py
+freeline_project_description.json
+freeline
