@@ -1,2 +1,1 @@
-include(':libraries:EverNoteEx')
-include(':libraries:ExGridView')
+include ':app', ':exgridview'
