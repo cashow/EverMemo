@@ -1,11 +1,9 @@
 package com.cashow.evermemo;
 
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
@@ -63,7 +61,6 @@ public class SettingActivity extends ActionBarActivity implements
 		mToggleButton.setOnCheckedChangeListener(this);
 		mToggleButton.setChecked(mSharedPreferences.getBoolean(
 				OPEN_MEMO_WHEN_START_UP, false));
-		findViewById(R.id.rate).setOnClickListener(this);
 		findViewById(R.id.setting_start).setOnClickListener(this);
 	}
 
@@ -117,17 +114,6 @@ public class SettingActivity extends ActionBarActivity implements
 										dialog.dismiss();
 									}
 								}).create().show();
-			}
-			break;
-		case R.id.rate:
-			Uri uri = Uri.parse("market://details?id="
-					+ mContext.getPackageName());
-			Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
-			try {
-				startActivity(goToMarket);
-			} catch (ActivityNotFoundException e) {
-				Toast.makeText(mContext, R.string.can_not_open_market,
-						Toast.LENGTH_SHORT).show();
 			}
 			break;
 		case R.id.setting_start:

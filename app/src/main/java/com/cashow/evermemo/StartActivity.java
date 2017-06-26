@@ -2,7 +2,6 @@ package com.cashow.evermemo;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog.Builder;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,7 +10,6 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.database.MergeCursor;
 import android.graphics.Typeface;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -60,7 +58,6 @@ public class StartActivity extends ActionBarActivity implements
 	private int mBindEvernotePandelHeight;
 	private Button buttonNew;
 	public static Evernote mEvernote;
-	public static String sShownRate = "ShownRate";
 	public static String sStartCount = "StartCount";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -188,52 +185,6 @@ public class StartActivity extends ActionBarActivity implements
 			}
 		}
 
-		if (mSharedPreferences.getInt(MemoActivity.sEditCount, 0) == 5
-				&& mSharedPreferences.getBoolean(sShownRate, false) == false) {
-
-			Builder builder = new Builder(mContext);
-			builder.setMessage(R.string.rate_for_evernote)
-					.setPositiveButton(R.string.rate_rate,
-							new DialogInterface.OnClickListener() {
-
-								@Override
-								public void onClick(DialogInterface dialog,
-										int which) {
-									Uri uri = Uri.parse("market://details?id="
-											+ mContext.getPackageName());
-									Intent goToMarket = new Intent(
-											Intent.ACTION_VIEW, uri);
-									try {
-										startActivity(goToMarket);
-									} catch (ActivityNotFoundException e) {
-										Toast.makeText(mContext,
-												R.string.can_not_open_market,
-												Toast.LENGTH_SHORT).show();
-									}
-								}
-							})
-					.setNegativeButton(R.string.rate_feedback,
-							new DialogInterface.OnClickListener() {
-
-								@Override
-								public void onClick(DialogInterface dialog,
-										int which) {
-									Intent Email = new Intent(
-											Intent.ACTION_SEND);
-									Email.setType("text/email");
-									Email.putExtra(
-											Intent.EXTRA_EMAIL,
-											new String[] { getString(R.string.team_email) });
-									Email.putExtra(Intent.EXTRA_SUBJECT,
-											getString(R.string.feedback));
-									Email.putExtra(Intent.EXTRA_TEXT,
-											getString(R.string.email_title));
-									startActivity(Intent.createChooser(Email,
-											getString(R.string.email_chooser)));
-								}
-							}).create().show();
-			mSharedPreferences.edit().putBoolean(sShownRate, true).commit();
-		}
 		mSyncTimer = new Timer();
 		Logger.e("启动自动更新任务");
 		mSyncTimer.schedule(new TimerTask() {
@@ -280,16 +231,6 @@ public class StartActivity extends ActionBarActivity implements
 			} else {
 				mEvernote.sync(true, true, new SyncHandler());
 			}
-			break;
-		case R.id.feedback:
-			Intent Email = new Intent(Intent.ACTION_SEND);
-			Email.setType("text/email");
-			Email.putExtra(Intent.EXTRA_EMAIL,
-					new String[] { getString(R.string.team_email) });
-			Email.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.feedback));
-			Email.putExtra(Intent.EXTRA_TEXT, getString(R.string.email_title));
-			startActivity(Intent.createChooser(Email,
-					getString(R.string.email_chooser)));
 			break;
 		default:
 			break;

@@ -13,9 +13,6 @@
             <item
                 android:id="@+id/settiing"
                 android:title="@string/menu_setting"/>
-            <item
-                android:id="@+id/feedback"
-                android:title="@string/menu_feedback"/>
         </menu>
     </item>
 
