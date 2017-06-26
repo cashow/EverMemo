@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.database.MergeCursor;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -61,73 +62,78 @@ public class StartActivity extends ActionBarActivity implements
 	public static Evernote mEvernote;
 	public static String sShownRate = "ShownRate";
 	public static String sStartCount = "StartCount";
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getSupportActionBar().setLogo(R.drawable.ab_logo);
+        mContext = this;
+        mEvernote = new Evernote(mContext);
+
+        setContentView(R.layout.activity_start);
+        mMemosGrid = (MultiColumnListView) findViewById(R.id.memos);
+        mBindEvernotePanel = (LinearLayout) findViewById(R.id.evernote_panel);
+        mBindEvernote = (Button) findViewById(R.id.bind_evernote);
+        mBindEvernotePandelHeight = mBindEvernotePanel.getLayoutParams().height;
+        buttonNew = (Button) findViewById(R.id.button_new);
+
+        LoaderManager manager = getSupportLoaderManager();
+        mMemosAdapter = new MemosAdapter(mContext, null,
+                CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER, this, this);
+        mMemosGrid.setAdapter(mMemosAdapter);
+
+        manager.initLoader(1, null, this);
+        mSharedPreferences = PreferenceManager
+                .getDefaultSharedPreferences(mContext);
+
+        if (mSharedPreferences.getInt(sStartCount, 1) == 1) {
+            // 底部显示绑定evernote的提示
+            mBindEvernotePanel.startAnimation(new MarginAnimation(
+                    mBindEvernotePanel, 0, 0, 0, 0, 600));
+            new Timer().schedule(new TimerTask() {
+
+                @Override
+                public void run() {
+
+                    StartActivity.this.runOnUiThread(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            mBindEvernotePanel
+                                    .startAnimation(new MarginAnimation(
+                                            mBindEvernotePanel, 0, 0, 0,
+                                            -mBindEvernotePandelHeight));
+                        }
+                    });
+                }
+            }, 5000);
+            mSharedPreferences
+                    .edit()
+                    .putInt(sStartCount,
+                            mSharedPreferences.getInt(sStartCount, 1) + 1)
+                    .commit();
+            mBindEvernote.setOnClickListener(this);
+        }
+
+        if (mSharedPreferences.getBoolean(
+                SettingActivity.OPEN_MEMO_WHEN_START_UP, false)) {
+            startActivity(new Intent(this, MemoActivity.class));
+        }
+
+        mEvernote.sync(true, true, null);
+
+        buttonNew.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mContext.startActivity(new Intent(mContext, MemoActivity.class));
+            }
+        });
+
+        Typeface mRobotoThin = Typeface.createFromAsset(mContext.getAssets(),
+                "fonts/Roboto-Thin.ttf");
+        buttonNew.setTypeface(mRobotoThin);
+    }
+
 	private Menu mMenu;
-
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		getSupportActionBar().setLogo(R.drawable.ab_logo);
-		mContext = this;
-		mEvernote = new Evernote(mContext);
-
-		setContentView(R.layout.activity_start);
-		mMemosGrid = (MultiColumnListView) findViewById(R.id.memos);
-		mBindEvernotePanel = (LinearLayout) findViewById(R.id.evernote_panel);
-		mBindEvernote = (Button) findViewById(R.id.bind_evernote);
-		mBindEvernotePandelHeight = mBindEvernotePanel.getLayoutParams().height;
-		buttonNew = (Button) findViewById(R.id.button_new);
-
-		LoaderManager manager = getSupportLoaderManager();
-		mMemosAdapter = new MemosAdapter(mContext, null,
-				CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER, this, this);
-		mMemosGrid.setAdapter(mMemosAdapter);
-
-		manager.initLoader(1, null, this);
-		mSharedPreferences = PreferenceManager
-				.getDefaultSharedPreferences(mContext);
-
-		if (mSharedPreferences.getInt(sStartCount, 1) == 1) {
-			mBindEvernotePanel.startAnimation(new MarginAnimation(
-					mBindEvernotePanel, 0, 0, 0, 0, 600));
-			new Timer().schedule(new TimerTask() {
-
-				@Override
-				public void run() {
-
-					StartActivity.this.runOnUiThread(new Runnable() {
-
-						@Override
-						public void run() {
-							mBindEvernotePanel
-									.startAnimation(new MarginAnimation(
-											mBindEvernotePanel, 0, 0, 0,
-											-mBindEvernotePandelHeight));
-						}
-					});
-				}
-			}, 5000);
-			mSharedPreferences
-					.edit()
-					.putInt(sStartCount,
-							mSharedPreferences.getInt(sStartCount, 1) + 1)
-					.commit();
-			mBindEvernote.setOnClickListener(this);
-		}
-
-		if (mSharedPreferences.getBoolean(
-				SettingActivity.OPEN_MEMO_WHEN_START_UP, false)) {
-			startActivity(new Intent(this, MemoActivity.class));
-		}
-
-		mEvernote.sync(true, true, null);
-
-		buttonNew.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				mContext.startActivity(new Intent(mContext, MemoActivity.class));
-			}
-		});
-	}
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
