@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.ContentObserver;
 import android.database.Cursor;
-import android.graphics.Typeface;
 import android.os.Handler;
 import android.support.v4.widget.CursorAdapter;
 import android.text.Html;
@@ -35,7 +34,6 @@ public class MemosAdapter extends CursorAdapter implements OnClickListener,
 
 	private boolean mCheckMode;
 	private HashMap<Integer, Memo> mCheckedItems;
-	private Typeface mRobotoThin;
 	private ItemLongPressedLisener mItemLongPressedLisener;
 	private onItemSelectLisener mOnItemSelectLisener;
 
@@ -45,8 +43,6 @@ public class MemosAdapter extends CursorAdapter implements OnClickListener,
 		super(context, c, flags);
 		mLayoutInflater = (LayoutInflater) context
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		mRobotoThin = Typeface.createFromAsset(context.getAssets(),
-				"fonts/Roboto-Thin.ttf");
 		mContext.getContentResolver().registerContentObserver(
 				MemoProvider.MEMO_URI, false,
 				new UpdateObserver(mUpdateHandler));
@@ -91,27 +87,17 @@ public class MemosAdapter extends CursorAdapter implements OnClickListener,
 			v = newView(mContext, mCursor, parent);
 		} else {
 			v = convertView;
-			boolean isFirst = (Boolean) v.getTag(R.string.memo_first);
-			if (isFirst && position != 0) {
-				v = newView(mContext, mCursor, parent);
-			}
-			if (!isFirst && position == 0) {
-				v = newView(mContext, mCursor, parent);
-			}
 		}
 
-		if (position != 0) {
-			v.findViewById(R.id.hover).setTag(R.string.memo_position, position);
-		}
+        v.findViewById(R.id.hover).setTag(R.string.memo_position, position);
 		bindView(v, mContext, mCursor);
-
 		return v;
 	}
 
 	@Override
 	public void bindView(View view, Context context, Cursor cursor) {
 		int _id = cursor.getInt(cursor.getColumnIndex("_id"));
-		if (cursor != null && view != null && _id != 0) {
+		if (cursor != null && view != null) {
 			Memo memo = new Memo(cursor);
 			TextView content = (TextView) view.findViewById(R.id.content);
 			TextView date = (TextView) view.findViewById(R.id.date);
@@ -142,47 +128,30 @@ public class MemosAdapter extends CursorAdapter implements OnClickListener,
 
 	@Override
 	public View newView(Context context, Cursor cursor, ViewGroup parent) {
-		if (cursor.getInt(cursor.getColumnIndex("_id")) == 0) {
-			View firstView = mLayoutInflater.inflate(R.layout.memo_add, parent,
-					false);
-			firstView.setTag(R.string.memo_first, true);
-			TextView textView = (TextView) firstView.findViewById(R.id.plus);
-			textView.setTypeface(mRobotoThin);
-			firstView.setOnClickListener(this);
-			return firstView;
-		} else {
-			View commonView = mLayoutInflater.inflate(R.layout.memo_item,
-					parent, false);
-			commonView.setTag(R.string.memo_first, false);
-			final View hover = commonView.findViewById(R.id.hover);
-			hover.setOnClickListener(this);
-			hover.setOnLongClickListener(this);
-			return commonView;
-		}
+        View commonView = mLayoutInflater.inflate(R.layout.memo_item,
+                parent, false);
+        final View hover = commonView.findViewById(R.id.hover);
+        hover.setOnClickListener(this);
+        hover.setOnLongClickListener(this);
+        return commonView;
 	}
 
 	@Override
 	public void onClick(View v) {
-		if (v.getTag(R.string.memo_first) != null
-				&& (Boolean) v.getTag(R.string.memo_first) == true) {
-			mContext.startActivity(new Intent(mContext, MemoActivity.class));
-		} else {
-			switch (v.getId()) {
-			case R.id.hover:
-				Memo memo = (Memo) v.getTag(R.string.memo_data);
-				if (mCheckMode) {
-					toggleCheckedId(memo.getId(), memo, v);
-				} else {
-					Intent intent = new Intent(mContext, MemoActivity.class);
-					intent.putExtra("memo", memo);
-					mContext.startActivity(intent);
-				}
-				break;
-			default:
-				break;
-			}
-		}
-
+        switch (v.getId()) {
+        case R.id.hover:
+            Memo memo = (Memo) v.getTag(R.string.memo_data);
+            if (mCheckMode) {
+                toggleCheckedId(memo.getId(), memo, v);
+            } else {
+                Intent intent = new Intent(mContext, MemoActivity.class);
+                intent.putExtra("memo", memo);
+                mContext.startActivity(intent);
+            }
+            break;
+        default:
+            break;
+        }
 	}
 
 	public interface ItemLongPressedLisener {

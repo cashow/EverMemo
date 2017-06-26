@@ -116,11 +116,9 @@ public class MemoProvider extends ContentProvider {
 		switch (uriType) {
 		case MEMOS:
 			long newID = database.insert(MemoDB.MEMO_TABLE_NAME, null, values);
-			if (newID > 0) {
-				itemUri = ContentUris.withAppendedId(uri, newID);
-				getContext().getContentResolver().notifyChange(itemUri, null);
-				memo.setId((int) newID);
-			}
+			itemUri = ContentUris.withAppendedId(uri, newID);
+			getContext().getContentResolver().notifyChange(itemUri, null);
+			memo.setId((int) newID);
 		default:
 			break;
 		}
