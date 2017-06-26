@@ -1,4 +1,4 @@
-package com.zhan_dui.data;
+package com.cashow.data;
 
 import android.content.ContentProvider;
 import android.content.ContentUris;

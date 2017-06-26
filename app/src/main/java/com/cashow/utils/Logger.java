@@ -1,8 +1,8 @@
-package com.zhan_dui.utils;
+package com.cashow.utils;
 
 import android.util.Log;
 
-import com.zhan_dui.evermemo.MemoActivity;
+import com.cashow.evermemo.MemoActivity;
 
 public class Logger {
 

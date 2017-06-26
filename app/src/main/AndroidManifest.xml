@@ -14,27 +14,14 @@
         android:label="@string/app_name"
         android:logo="@drawable/ab_logo"
         android:theme="@style/EverMemo_LightMode" >
-        <service
-            android:name="com.umeng.common.net.DownloadingService"
-            android:process=":DownloadingService" >
-        </service>
-
-        <meta-data
-            android:name="UMENG_APPKEY"
-            android:value="5227d49556240bb56e0b9713" >
-        </meta-data>
-        <meta-data
-            android:name="UMENG_CHANNEL"
-            android:value="Wan_Dou_Jia" />
-
         <provider
-            android:name="com.zhan_dui.data.MemoProvider"
+            android:name="com.cashow.data.MemoProvider"
             android:authorities="com.cashow.data.MemoContentProvider"
             android:exported="false"
             android:multiprocess="true" >
         </provider>
 
-        <activity android:name="com.zhan_dui.evermemo.StartActivity" >
+        <activity android:name="com.cashow.evermemo.StartActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -42,10 +29,10 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.zhan_dui.evermemo.MemoActivity"
+            android:name="com.cashow.evermemo.MemoActivity"
             android:windowSoftInputMode="stateHidden|adjustResize" >
         </activity>
-        <activity android:name="com.zhan_dui.evermemo.SettingActivity" >
+        <activity android:name="com.cashow.evermemo.SettingActivity" >
         </activity>
     </application>
 </manifest>

@@ -1,6 +1,5 @@
-package com.zhan_dui.evermemo;
+package com.cashow.evermemo;
 
-import android.annotation.SuppressLint;
 import android.app.AlertDialog.Builder;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -12,8 +11,6 @@ import android.database.MatrixCursor;
 import android.database.MergeCursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
@@ -26,23 +23,18 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.cashow.cashowevermemo.R;
 import com.huewu.pla.lib.MultiColumnListView;
-import com.umeng.analytics.MobclickAgent;
-import com.umeng.update.UmengUpdateAgent;
-import com.zhan_dui.adapters.MemosAdapter;
-import com.zhan_dui.adapters.MemosAdapter.ItemLongPressedLisener;
-import com.zhan_dui.adapters.MemosAdapter.onItemSelectLisener;
-import com.zhan_dui.data.MemoDB;
-import com.zhan_dui.data.MemoProvider;
-import com.zhan_dui.utils.Logger;
-import com.zhan_dui.utils.MarginAnimation;
+import com.cashow.adapters.MemosAdapter;
+import com.cashow.adapters.MemosAdapter.ItemLongPressedLisener;
+import com.cashow.adapters.MemosAdapter.onItemSelectLisener;
+import com.cashow.data.MemoDB;
+import com.cashow.data.MemoProvider;
+import com.cashow.utils.Logger;
+import com.cashow.utils.MarginAnimation;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -66,7 +58,6 @@ public class StartActivity extends ActionBarActivity implements
 		super.onCreate(savedInstanceState);
 		getSupportActionBar().setLogo(R.drawable.ab_logo);
 		mContext = this;
-		MobclickAgent.onError(this);
 		setContentView(R.layout.activity_start);
 		mMemosGrid = (MultiColumnListView) findViewById(R.id.memos);
 		mBindEvernotePanel = (LinearLayout) findViewById(R.id.evernote_panel);
@@ -112,8 +103,6 @@ public class StartActivity extends ActionBarActivity implements
 				SettingActivity.OPEN_MEMO_WHEN_START_UP, false)) {
 			startActivity(new Intent(this, MemoActivity.class));
 		}
-
-		UmengUpdateAgent.update(this);
 	}
 
 	@Override
@@ -142,7 +131,6 @@ public class StartActivity extends ActionBarActivity implements
 	@Override
 	protected void onResume() {
 		super.onResume();
-		MobclickAgent.onResume(this);
 
 		if (mMenu != null) {
 			MenuItem syncItem = mMenu.findItem(R.id.sync);
@@ -205,7 +193,6 @@ public class StartActivity extends ActionBarActivity implements
 			Logger.e("结束定时同步任务");
 			mSyncTimer.cancel();
 		}
-		MobclickAgent.onPause(this);
 	}
 
 	@Override

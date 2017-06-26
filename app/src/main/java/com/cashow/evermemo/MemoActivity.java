@@ -1,4 +1,4 @@
-package com.zhan_dui.evermemo;
+package com.cashow.evermemo;
 
 import android.app.AlertDialog;
 import android.content.ContentUris;
@@ -22,10 +22,9 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
 import com.cashow.cashowevermemo.R;
-import com.umeng.analytics.MobclickAgent;
-import com.zhan_dui.data.Memo;
-import com.zhan_dui.data.MemoDB;
-import com.zhan_dui.data.MemoProvider;
+import com.cashow.data.Memo;
+import com.cashow.data.MemoDB;
+import com.cashow.data.MemoProvider;
 
 import java.util.Date;
 import java.util.Timer;
@@ -77,9 +76,7 @@ public class MemoActivity extends ActionBarActivity implements OnClickListener,
 			getWindow().setSoftInputMode(
 					WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
 			mContentEditText.requestFocus();
-			MobclickAgent.onEvent(mContext, "new_memo");
 		} else {
-			MobclickAgent.onEvent(mContext, "edit_memo");
 		}
 
 		mContentEditText.setOnKeyListener(this);
@@ -247,13 +244,11 @@ public class MemoActivity extends ActionBarActivity implements OnClickListener,
 	protected void onPause() {
 		super.onPause();
 		mTimer.cancel();
-		MobclickAgent.onPause(this);
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		MobclickAgent.onResume(this);
 		mTimer = new Timer();
 		mTimer.schedule(new TimerTask() {
 			@Override
@@ -289,8 +284,6 @@ public class MemoActivity extends ActionBarActivity implements OnClickListener,
 								public void onClick(DialogInterface dialog,
 										int which) {
 									deleteAndLeave();
-									MobclickAgent.onEvent(mContext,
-											"delete_memo");
 								}
 							}).setNegativeButton(R.string.give_up_cancel, null)
 					.create().show();

@@ -1,4 +1,4 @@
-package com.zhan_dui.adapters;
+package com.cashow.adapters;
 
 import android.annotation.SuppressLint;
 import android.content.ContentUris;
@@ -18,10 +18,10 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.cashow.cashowevermemo.R;
-import com.zhan_dui.data.Memo;
-import com.zhan_dui.data.MemoProvider;
-import com.zhan_dui.evermemo.MemoActivity;
-import com.zhan_dui.utils.DateHelper;
+import com.cashow.data.Memo;
+import com.cashow.data.MemoProvider;
+import com.cashow.evermemo.MemoActivity;
+import com.cashow.utils.DateHelper;
 
 import java.util.HashMap;
 import java.util.Iterator;

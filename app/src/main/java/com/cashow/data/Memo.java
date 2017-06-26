@@ -1,9 +1,9 @@
-package com.zhan_dui.data;
+package com.cashow.data;
 
 import android.content.ContentValues;
 import android.database.Cursor;
 
-import com.zhan_dui.utils.Logger;
+import com.cashow.utils.Logger;
 
 import java.io.Serializable;
 

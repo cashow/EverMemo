@@ -9,7 +9,7 @@
         android:layout_height="match_parent"
         android:background="@drawable/hover_border_normal" >
 
-        <com.zhan_dui.custom.MinMaxTextView
+        <com.cashow.custom.MinMaxTextView
             android:id="@+id/plus"
             android:layout_width="match_parent"
             android:layout_height="@dimen/content_max_height"

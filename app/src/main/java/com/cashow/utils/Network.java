@@ -1,4 +1,4 @@
-package com.zhan_dui.utils;
+package com.cashow.utils;
 
 import android.content.Context;
 import android.net.ConnectivityManager;

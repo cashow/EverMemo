@@ -1,9 +1,7 @@
-package com.zhan_dui.evermemo;
+package com.cashow.evermemo;
 
-import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -14,15 +12,12 @@ import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.cashow.cashowevermemo.R;
-import com.umeng.analytics.MobclickAgent;
 
 public class SettingActivity extends ActionBarActivity implements
 		OnClickListener, OnCheckedChangeListener {
@@ -52,10 +47,6 @@ public class SettingActivity extends ActionBarActivity implements
 				OPEN_MEMO_WHEN_START_UP, false));
 		findViewById(R.id.rate).setOnClickListener(this);
 		findViewById(R.id.setting_start).setOnClickListener(this);
-	}
-
-	private void bindSuccess() {
-		findViewById(R.id.bind_arrow).setVisibility(View.INVISIBLE);
 	}
 
 	@Override
@@ -95,11 +86,6 @@ public class SettingActivity extends ActionBarActivity implements
 
 	@Override
 	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-		if (isChecked) {
-			MobclickAgent.onEvent(mContext, "open_quick_launch");
-		} else {
-			MobclickAgent.onEvent(mContext, "close_quick_launch");
-		}
 		mSharedPreferences.edit()
 				.putBoolean(OPEN_MEMO_WHEN_START_UP, isChecked).commit();
 	}
@@ -107,13 +93,11 @@ public class SettingActivity extends ActionBarActivity implements
 	@Override
 	protected void onResume() {
 		super.onResume();
-		MobclickAgent.onResume(this);
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		MobclickAgent.onPause(this);
 	}
 
 	@Override

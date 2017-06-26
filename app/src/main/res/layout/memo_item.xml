@@ -24,7 +24,7 @@
             android:src="@drawable/icon_upload"
             android:visibility="invisible" />
 
-        <com.zhan_dui.custom.MinusTextView
+        <com.cashow.custom.MinusTextView
             android:id="@+id/content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

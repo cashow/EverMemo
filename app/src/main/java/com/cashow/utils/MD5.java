@@ -1,4 +1,4 @@
-package com.zhan_dui.utils;
+package com.cashow.utils;
 
 import java.security.MessageDigest;
 
