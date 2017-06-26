@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true">
+
+        <TextView
+            android:id="@+id/text_set_color"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="设置便签颜色"
+            android:layout_centerHorizontal="true"
+            android:textColor="#fff"/>
+        
+        <ImageView
+            android:id="@+id/image_normal"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_marginTop="15dp"
+            android:layout_below="@id/text_set_color"
+            android:layout_alignParentLeft="true"
+            android:src="@drawable/shape_round_normal"/>
+
+        <ImageView
+            android:id="@+id/image_green"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_alignTop="@id/image_normal"
+            android:layout_centerHorizontal="true"
+            android:src="@drawable/shape_round_green"/>
+
+        <ImageView
+            android:id="@+id/image_blue"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_alignTop="@id/image_normal"
+            android:layout_alignParentRight="true"
+            android:src="@drawable/shape_round_blue"/>
+
+        <ImageView
+            android:id="@+id/image_grey"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_marginTop="15dp"
+            android:layout_below="@id/image_normal"
+            android:layout_alignParentLeft="true"
+            android:src="@drawable/shape_round_grey"/>
+
+        <ImageView
+            android:id="@+id/image_yellow"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_alignTop="@id/image_grey"
+            android:layout_centerHorizontal="true"
+            android:src="@drawable/shape_round_yellow"/>
+
+        <ImageView
+            android:id="@+id/image_red"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_alignTop="@id/image_grey"
+            android:layout_alignParentRight="true"
+            android:src="@drawable/shape_round_red"/>
+
+        <TextView
+            android:id="@+id/text_delete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="删除便签"
+            android:layout_marginTop="50dp"
+            android:layout_below="@id/image_grey"
+            android:layout_centerHorizontal="true"
+            android:textColor="#fff"/>
+
+        <ImageView
+            android:id="@+id/image_delete"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_marginTop="15dp"
+            android:layout_below="@id/text_delete"
+            android:layout_centerHorizontal="true"
+            android:src="@drawable/icon_delete"/>
+    </RelativeLayout>
+</RelativeLayout>

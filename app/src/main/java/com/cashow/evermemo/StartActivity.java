@@ -1,7 +1,6 @@
 package com.cashow.evermemo;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -20,20 +19,19 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.view.ActionMode;
+import android.support.v7.app.AlertDialog;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import com.cashow.adapters.MemosAdapter;
 import com.cashow.adapters.MemosAdapter.ItemLongPressedLisener;
-import com.cashow.adapters.MemosAdapter.onItemSelectLisener;
 import com.cashow.cashowevermemo.R;
+import com.cashow.custom.MemoPopupWindow;
 import com.cashow.data.MemoDB;
 import com.cashow.data.MemoProvider;
 import com.cashow.sync.Evernote;
@@ -46,19 +44,21 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class StartActivity extends ActionBarActivity implements
-		LoaderCallbacks<Cursor>, View.OnClickListener, ItemLongPressedLisener,
-		onItemSelectLisener {
+        LoaderCallbacks<Cursor>, View.OnClickListener, ItemLongPressedLisener {
 
-	private MultiColumnListView mMemosGrid;
-	private Context mContext;
-	private MemosAdapter mMemosAdapter;
-	private LinearLayout mBindEvernotePanel;
-	private SharedPreferences mSharedPreferences;
-	private Button mBindEvernote;
-	private int mBindEvernotePandelHeight;
-	private Button buttonNew;
-	public static Evernote mEvernote;
-	public static String sStartCount = "StartCount";
+    private MultiColumnListView mMemosGrid;
+    private Context mContext;
+    private MemosAdapter mMemosAdapter;
+    private LinearLayout mBindEvernotePanel;
+    private SharedPreferences mSharedPreferences;
+    private Button mBindEvernote;
+    private int mBindEvernotePandelHeight;
+    private Button buttonNew;
+    public static Evernote mEvernote;
+    public static String sStartCount = "StartCount";
+
+    private MemoPopupWindow memoPopupWindow;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,7 +75,7 @@ public class StartActivity extends ActionBarActivity implements
 
         LoaderManager manager = getSupportLoaderManager();
         mMemosAdapter = new MemosAdapter(mContext, null,
-                CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER, this, this);
+                CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER, this);
         mMemosGrid.setAdapter(mMemosAdapter);
 
         manager.initLoader(1, null, this);
@@ -103,10 +103,7 @@ public class StartActivity extends ActionBarActivity implements
                     });
                 }
             }, 5000);
-            mSharedPreferences
-                    .edit()
-                    .putInt(sStartCount,
-                            mSharedPreferences.getInt(sStartCount, 1) + 1)
+            mSharedPreferences.edit().putInt(sStartCount,mSharedPreferences.getInt(sStartCount, 1) + 1)
                     .commit();
             mBindEvernote.setOnClickListener(this);
         }
@@ -130,230 +127,185 @@ public class StartActivity extends ActionBarActivity implements
         buttonNew.setTypeface(mRobotoThin);
     }
 
-	private Menu mMenu;
+    private Menu mMenu;
 
-	@Override
-	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		CursorLoader cursorLoader = new CursorLoader(mContext,
-				MemoProvider.MEMO_URI, null, null, null, MemoDB.UPDATEDTIME
-						+ " desc");
-		return cursorLoader;
-	}
+    @Override
+    public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
+        CursorLoader cursorLoader = new CursorLoader(mContext,
+                MemoProvider.MEMO_URI, null, null, null, MemoDB.UPDATEDTIME
+                + " desc");
+        return cursorLoader;
+    }
 
-	@Override
-	public void onLoadFinished(Loader<Cursor> arg0, Cursor cursor) {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[] { "_id" });
-		Cursor c = new MergeCursor(new Cursor[] { matrixCursor, cursor });
-		mMemosAdapter.swapCursor(c);
-	}
+    @Override
+    public void onLoadFinished(Loader<Cursor> arg0, Cursor cursor) {
+        MatrixCursor matrixCursor = new MatrixCursor(new String[]{"_id"});
+        Cursor c = new MergeCursor(new Cursor[]{matrixCursor, cursor});
+        mMemosAdapter.swapCursor(c);
+    }
 
-	@Override
-	public void onLoaderReset(Loader<Cursor> arg0) {
-		mMemosAdapter.swapCursor(null);
-	}
+    @Override
+    public void onLoaderReset(Loader<Cursor> arg0) {
+        mMemosAdapter.swapCursor(null);
+    }
 
-	@Override
-	public void onClick(View v) {
-		if (v.getId() == R.id.bind_evernote) {
-			mEvernote.auth();
-		}
-	}
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == R.id.bind_evernote) {
+            mEvernote.auth();
+        }
+    }
 
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-		switch (requestCode) {
-		case EvernoteSession.REQUEST_CODE_OAUTH:
-			mEvernote.onAuthFinish(resultCode);
-			break;
-		}
-	}
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case EvernoteSession.REQUEST_CODE_OAUTH:
+                mEvernote.onAuthFinish(resultCode);
+                break;
+        }
+    }
 
-	private Timer mSyncTimer;
+    private Timer mSyncTimer;
 
-	@Override
-	protected void onResume() {
-		super.onResume();
+    @Override
+    protected void onResume() {
+        super.onResume();
 
-		if (mMenu != null) {
-			MenuItem syncItem = mMenu.findItem(R.id.sync);
-			if (!mEvernote.isLogin()) {
-				syncItem.setTitle(R.string.menu_bind);
-			} else {
-				syncItem.setTitle(R.string.menu_sync);
-			}
-		}
+        if (mMenu != null) {
+            MenuItem syncItem = mMenu.findItem(R.id.sync);
+            if (!mEvernote.isLogin()) {
+                syncItem.setTitle(R.string.menu_bind);
+            } else {
+                syncItem.setTitle(R.string.menu_sync);
+            }
+        }
 
-		mSyncTimer = new Timer();
-		Logger.e("启动自动更新任务");
-		mSyncTimer.schedule(new TimerTask() {
+        mSyncTimer = new Timer();
+        Logger.e("启动自动更新任务");
+        mSyncTimer.schedule(new TimerTask() {
 
-			@Override
-			public void run() {
-				mEvernote.sync(true, true, null);
-			}
-		}, 30000, 50000);
-	}
+            @Override
+            public void run() {
+                mEvernote.sync(true, true, null);
+            }
+        }, 30000, 50000);
+    }
 
-	@Override
-	protected void onPause() {
-		super.onPause();
-		if (mSyncTimer != null) {
-			Logger.e("结束定时同步任务");
-			mSyncTimer.cancel();
-		}
-	}
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mSyncTimer != null) {
+            Logger.e("结束定时同步任务");
+            mSyncTimer.cancel();
+        }
+    }
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.start, menu);
-		mMenu = menu;
-		MenuItem syncItem = menu.findItem(R.id.sync);
-		if (!mEvernote.isLogin()) {
-			syncItem.setTitle(R.string.menu_bind);
-		} else {
-			syncItem.setTitle(R.string.menu_sync);
-		}
-		return true;
-	}
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.start, menu);
+        mMenu = menu;
+        MenuItem syncItem = menu.findItem(R.id.sync);
+        if (!mEvernote.isLogin()) {
+            syncItem.setTitle(R.string.menu_bind);
+        } else {
+            syncItem.setTitle(R.string.menu_sync);
+        }
+        return true;
+    }
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case R.id.settiing:
-			Intent intent = new Intent(mContext, SettingActivity.class);
-			startActivity(intent);
-			break;
-		case R.id.sync:
-			if (mEvernote.isLogin() == false) {
-				mEvernote.auth();
-			} else {
-				mEvernote.sync(true, true, new SyncHandler());
-			}
-			break;
-		default:
-			break;
-		}
-		return false;
-	}
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.settiing:
+                Intent intent = new Intent(mContext, SettingActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.sync:
+                if (mEvernote.isLogin() == false) {
+                    mEvernote.auth();
+                } else {
+                    mEvernote.sync(true, true, new SyncHandler());
+                }
+                break;
+            default:
+                break;
+        }
+        return false;
+    }
 
-	@SuppressLint("HandlerLeak")
-	class SyncHandler extends Handler {
-		@Override
-		public void handleMessage(Message msg) {
-			super.handleMessage(msg);
-			switch (msg.what) {
-			case Evernote.SYNC_START:
-				findViewById(R.id.sync_progress).setVisibility(View.VISIBLE);
-				break;
-			case Evernote.SYNC_END:
-				findViewById(R.id.sync_progress).setVisibility(View.GONE);
-				break;
-			default:
-				break;
-			}
-		}
-	}
+    @SuppressLint("HandlerLeak")
+    class SyncHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case Evernote.SYNC_START:
+                    findViewById(R.id.sync_progress).setVisibility(View.VISIBLE);
+                    break;
+                case Evernote.SYNC_END:
+                    findViewById(R.id.sync_progress).setVisibility(View.GONE);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 
-	@Override
-	public boolean onKeyUp(int keyCode, KeyEvent event) {
-		if (keyCode == KeyEvent.KEYCODE_MENU) {
-			findViewById(R.id.more).performClick();
-			return true;
-		}
-		return super.onKeyUp(keyCode, event);
-	}
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_MENU) {
+            findViewById(R.id.more).performClick();
+            return true;
+        }
+        return super.onKeyUp(keyCode, event);
+    }
 
-	private Menu mContextMenu;
-	private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
+    @Override
+    public void onLongPressed(int memoId) {
+        if (memoPopupWindow == null) {
+            memoPopupWindow = new MemoPopupWindow(mContext, new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    memoPopupWindow.dismiss();
+                    switch (v.getId()) {
+                        case R.id.image_normal:
+                            break;
+                        case R.id.image_green:
+                            break;
+                        case R.id.image_blue:
+                            break;
+                        case R.id.image_grey:
+                            break;
+                        case R.id.image_yellow:
+                            break;
+                        case R.id.image_red:
+                            break;
+                        case R.id.image_delete:
+                            deleteMemo(memoPopupWindow.getMemoId());
+                            break;
+                    }
+                }
+            });
+        }
+        memoPopupWindow.setMemoId(memoId);
+        memoPopupWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content),
+                Gravity.CENTER, 0, 0);
+    }
 
-		@Override
-		public boolean onActionItemClicked(ActionMode arg0, MenuItem menuItem) {
-			switch (menuItem.getItemId()) {
-			case R.id.delete:
-				if (mMemosAdapter.getSelectedCount() == 0) {
-					Toast.makeText(mContext, R.string.delete_select_nothing,
-							Toast.LENGTH_SHORT).show();
-				} else {
-					Builder builder = new Builder(mContext);
-					builder.setMessage(R.string.delete_all_confirm)
-							.setTitle(R.string.delete_title)
-							.setPositiveButton(R.string.delete_sure,
-									new DialogInterface.OnClickListener() {
+    private void deleteMemo(final int memoId) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        builder.setMessage(R.string.delete_confirm)
+                .setTitle(R.string.delete_title)
+                .setPositiveButton(R.string.delete_sure,
+                        new DialogInterface.OnClickListener() {
 
-										@Override
-										public void onClick(
-												DialogInterface dialog,
-												int which) {
-											mMemosAdapter.deleteSelectedMemos();
-											if (mActionMode != null) {
-												mActionMode.finish();
-											}
-										}
-									})
-							.setNegativeButton(R.string.delete_cancel, null)
-							.create().show();
-				}
-				break;
-			default:
-				break;
-			}
-			return false;
-		}
-
-		@Override
-		public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-			MenuInflater inflater = mode.getMenuInflater();
-			inflater.inflate(R.menu.context_menu, menu);
-			return true;
-		}
-
-		@Override
-		public void onDestroyActionMode(ActionMode arg0) {
-			mActionMode = null;
-			mContextMenu = null;
-			mMemosAdapter.setCheckMode(false);
-		}
-
-		@Override
-		public boolean onPrepareActionMode(ActionMode arg0, Menu menu) {
-			mContextMenu = menu;
-			updateActionMode();
-			return false;
-		}
-
-	};
-
-	private ActionMode mActionMode;
-
-	@Override
-	public void startActionMode() {
-		if (mActionMode != null) {
-			return;
-		}
-		mActionMode = startSupportActionMode(mActionModeCallback);
-	}
-
-	public void updateActionMode() {
-		if (mMemosAdapter.getSelectedCount() <= 1) {
-			mContextMenu.findItem(R.id.selected_counts).setTitle(
-					mContext.getString(R.string.selected_one_count,
-							mMemosAdapter.getSelectedCount()));
-		} else {
-			mContextMenu.findItem(R.id.selected_counts).setTitle(
-					mContext.getString(R.string.selected_more_count,
-							mMemosAdapter.getSelectedCount()));
-		}
-	}
-
-	@Override
-	public void onSelect() {
-		updateActionMode();
-	}
-
-	@Override
-	public void onCancelSelect() {
-		updateActionMode();
-	}
-
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mMemosAdapter.deleteSelectedMemos(memoId);
+                            }
+                        })
+                .setNegativeButton(R.string.delete_cancel, null)
+                .create().show();
+    }
 }

@@ -24,8 +24,6 @@ import com.cashow.sync.Evernote;
 import com.cashow.utils.DateHelper;
 
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
 
 public class MemosAdapter extends CursorAdapter implements OnClickListener,
 		OnLongClickListener {
@@ -35,11 +33,9 @@ public class MemosAdapter extends CursorAdapter implements OnClickListener,
 	private boolean mCheckMode;
 	private HashMap<Integer, Memo> mCheckedItems;
 	private ItemLongPressedLisener mItemLongPressedLisener;
-	private onItemSelectLisener mOnItemSelectLisener;
 
 	public MemosAdapter(Context context, Cursor c, int flags,
-			ItemLongPressedLisener itemLongPressedLisener,
-			onItemSelectLisener selectLisener) {
+			ItemLongPressedLisener itemLongPressedLisener) {
 		super(context, c, flags);
 		mLayoutInflater = (LayoutInflater) context
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -47,7 +43,6 @@ public class MemosAdapter extends CursorAdapter implements OnClickListener,
 				MemoProvider.MEMO_URI, false,
 				new UpdateObserver(mUpdateHandler));
 		mItemLongPressedLisener = itemLongPressedLisener;
-		mOnItemSelectLisener = selectLisener;
 	}
 
 	@SuppressLint("HandlerLeak")
@@ -155,7 +150,7 @@ public class MemosAdapter extends CursorAdapter implements OnClickListener,
 	}
 
 	public interface ItemLongPressedLisener {
-		public void startActionMode();
+		public void onLongPressed(int memoId);
 	}
 
 	public interface onItemSelectLisener {
@@ -179,10 +174,10 @@ public class MemosAdapter extends CursorAdapter implements OnClickListener,
 		}
 		if (mCheckedItems.containsKey(_id) == false) {
 			mCheckedItems.put(_id, memo);
-			mOnItemSelectLisener.onSelect();
+//			mOnItemSelectLisener.onSelect();
 		} else {
 			mCheckedItems.remove(_id);
-			mOnItemSelectLisener.onCancelSelect();
+//			mOnItemSelectLisener.onCancelSelect();
 		}
 		notifyDataSetChanged();
 	}
@@ -197,12 +192,11 @@ public class MemosAdapter extends CursorAdapter implements OnClickListener,
 
 	@Override
 	public boolean onLongClick(View v) {
+        Memo memo = (Memo) v.getTag(R.string.memo_data);
 		if (mCheckMode == false) {
-			mItemLongPressedLisener.startActionMode();
+			mItemLongPressedLisener.onLongPressed(memo.getId());
 			setCheckMode(true);
 		}
-		Memo memo = (Memo) v.getTag(R.string.memo_data);
-		toggleCheckedId(memo.getId(), memo, v);
 		return true;
 	}
 
@@ -214,20 +208,9 @@ public class MemosAdapter extends CursorAdapter implements OnClickListener,
 		}
 	}
 
-	public void deleteSelectedMemos() {
-		if (mCheckedItems == null || mCheckedItems.size() == 0) {
-			return;
-		} else {
-			Set<Integer> keys = mCheckedItems.keySet();
-			Iterator<Integer> iterator = keys.iterator();
-			while (iterator.hasNext()) {
-				mContext.getContentResolver().delete(
-						ContentUris.withAppendedId(MemoProvider.MEMO_URI,
-								iterator.next()), null, null);
-			}
-			mCheckedItems.clear();
-			mOnItemSelectLisener.onCancelSelect();
-			new Evernote(mContext).sync(true, false, null);
-		}
+	public void deleteSelectedMemos(int memoId) {
+        mContext.getContentResolver().delete(
+                ContentUris.withAppendedId(MemoProvider.MEMO_URI, memoId), null, null);
+        new Evernote(mContext).sync(true, false, null);
 	}
 }
