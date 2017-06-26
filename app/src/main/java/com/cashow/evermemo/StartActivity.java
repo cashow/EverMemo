@@ -57,6 +57,7 @@ public class StartActivity extends ActionBarActivity implements
 	private SharedPreferences mSharedPreferences;
 	private Button mBindEvernote;
 	private int mBindEvernotePandelHeight;
+	private Button buttonNew;
 	public static Evernote mEvernote;
 	public static String sShownRate = "ShownRate";
 	public static String sStartCount = "StartCount";
@@ -74,6 +75,7 @@ public class StartActivity extends ActionBarActivity implements
 		mBindEvernotePanel = (LinearLayout) findViewById(R.id.evernote_panel);
 		mBindEvernote = (Button) findViewById(R.id.bind_evernote);
 		mBindEvernotePandelHeight = mBindEvernotePanel.getLayoutParams().height;
+		buttonNew = (Button) findViewById(R.id.button_new);
 
 		LoaderManager manager = getSupportLoaderManager();
 		mMemosAdapter = new MemosAdapter(mContext, null,
@@ -118,6 +120,13 @@ public class StartActivity extends ActionBarActivity implements
 		}
 
 		mEvernote.sync(true, true, null);
+
+		buttonNew.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				mContext.startActivity(new Intent(mContext, MemoActivity.class));
+			}
+		});
 	}
 
 	@Override
