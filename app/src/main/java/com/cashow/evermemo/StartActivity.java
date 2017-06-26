@@ -1,5 +1,6 @@
 package com.cashow.evermemo;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog.Builder;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -11,6 +12,8 @@ import android.database.MatrixCursor;
 import android.database.MergeCursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
@@ -23,24 +26,28 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.cashow.cashowevermemo.R;
-import com.huewu.pla.lib.MultiColumnListView;
 import com.cashow.adapters.MemosAdapter;
 import com.cashow.adapters.MemosAdapter.ItemLongPressedLisener;
 import com.cashow.adapters.MemosAdapter.onItemSelectLisener;
+import com.cashow.cashowevermemo.R;
 import com.cashow.data.MemoDB;
 import com.cashow.data.MemoProvider;
+import com.cashow.sync.Evernote;
 import com.cashow.utils.Logger;
 import com.cashow.utils.MarginAnimation;
+import com.evernote.client.android.EvernoteSession;
+import com.huewu.pla.lib.MultiColumnListView;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class StartActivity extends ActionBarActivity implements
-		LoaderCallbacks<Cursor>, ItemLongPressedLisener,
+		LoaderCallbacks<Cursor>, View.OnClickListener, ItemLongPressedLisener,
 		onItemSelectLisener {
 
 	private MultiColumnListView mMemosGrid;
@@ -48,7 +55,9 @@ public class StartActivity extends ActionBarActivity implements
 	private MemosAdapter mMemosAdapter;
 	private LinearLayout mBindEvernotePanel;
 	private SharedPreferences mSharedPreferences;
+	private Button mBindEvernote;
 	private int mBindEvernotePandelHeight;
+	public static Evernote mEvernote;
 	public static String sShownRate = "ShownRate";
 	public static String sStartCount = "StartCount";
 	private Menu mMenu;
@@ -58,9 +67,12 @@ public class StartActivity extends ActionBarActivity implements
 		super.onCreate(savedInstanceState);
 		getSupportActionBar().setLogo(R.drawable.ab_logo);
 		mContext = this;
+		mEvernote = new Evernote(mContext);
+
 		setContentView(R.layout.activity_start);
 		mMemosGrid = (MultiColumnListView) findViewById(R.id.memos);
 		mBindEvernotePanel = (LinearLayout) findViewById(R.id.evernote_panel);
+		mBindEvernote = (Button) findViewById(R.id.bind_evernote);
 		mBindEvernotePandelHeight = mBindEvernotePanel.getLayoutParams().height;
 
 		LoaderManager manager = getSupportLoaderManager();
@@ -97,12 +109,15 @@ public class StartActivity extends ActionBarActivity implements
 					.putInt(sStartCount,
 							mSharedPreferences.getInt(sStartCount, 1) + 1)
 					.commit();
+			mBindEvernote.setOnClickListener(this);
 		}
 
 		if (mSharedPreferences.getBoolean(
 				SettingActivity.OPEN_MEMO_WHEN_START_UP, false)) {
 			startActivity(new Intent(this, MemoActivity.class));
 		}
+
+		mEvernote.sync(true, true, null);
 	}
 
 	@Override
@@ -126,6 +141,23 @@ public class StartActivity extends ActionBarActivity implements
 		mMemosAdapter.swapCursor(null);
 	}
 
+	@Override
+	public void onClick(View v) {
+		if (v.getId() == R.id.bind_evernote) {
+			mEvernote.auth();
+		}
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		switch (requestCode) {
+		case EvernoteSession.REQUEST_CODE_OAUTH:
+			mEvernote.onAuthFinish(resultCode);
+			break;
+		}
+	}
+
 	private Timer mSyncTimer;
 
 	@Override
@@ -134,6 +166,11 @@ public class StartActivity extends ActionBarActivity implements
 
 		if (mMenu != null) {
 			MenuItem syncItem = mMenu.findItem(R.id.sync);
+			if (!mEvernote.isLogin()) {
+				syncItem.setTitle(R.string.menu_bind);
+			} else {
+				syncItem.setTitle(R.string.menu_sync);
+			}
 		}
 
 		if (mSharedPreferences.getInt(MemoActivity.sEditCount, 0) == 5
@@ -184,6 +221,13 @@ public class StartActivity extends ActionBarActivity implements
 		}
 		mSyncTimer = new Timer();
 		Logger.e("启动自动更新任务");
+		mSyncTimer.schedule(new TimerTask() {
+
+			@Override
+			public void run() {
+				mEvernote.sync(true, true, null);
+			}
+		}, 30000, 50000);
 	}
 
 	@Override
@@ -200,6 +244,11 @@ public class StartActivity extends ActionBarActivity implements
 		getMenuInflater().inflate(R.menu.start, menu);
 		mMenu = menu;
 		MenuItem syncItem = menu.findItem(R.id.sync);
+		if (!mEvernote.isLogin()) {
+			syncItem.setTitle(R.string.menu_bind);
+		} else {
+			syncItem.setTitle(R.string.menu_sync);
+		}
 		return true;
 	}
 
@@ -211,6 +260,11 @@ public class StartActivity extends ActionBarActivity implements
 			startActivity(intent);
 			break;
 		case R.id.sync:
+			if (mEvernote.isLogin() == false) {
+				mEvernote.auth();
+			} else {
+				mEvernote.sync(true, true, new SyncHandler());
+			}
 			break;
 		case R.id.feedback:
 			Intent Email = new Intent(Intent.ACTION_SEND);
@@ -226,6 +280,24 @@ public class StartActivity extends ActionBarActivity implements
 			break;
 		}
 		return false;
+	}
+
+	@SuppressLint("HandlerLeak")
+	class SyncHandler extends Handler {
+		@Override
+		public void handleMessage(Message msg) {
+			super.handleMessage(msg);
+			switch (msg.what) {
+			case Evernote.SYNC_START:
+				findViewById(R.id.sync_progress).setVisibility(View.VISIBLE);
+				break;
+			case Evernote.SYNC_END:
+				findViewById(R.id.sync_progress).setVisibility(View.GONE);
+				break;
+			default:
+				break;
+			}
+		}
 	}
 
 	@Override

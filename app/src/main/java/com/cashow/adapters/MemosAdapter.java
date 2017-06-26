@@ -21,6 +21,7 @@ import com.cashow.cashowevermemo.R;
 import com.cashow.data.Memo;
 import com.cashow.data.MemoProvider;
 import com.cashow.evermemo.MemoActivity;
+import com.cashow.sync.Evernote;
 import com.cashow.utils.DateHelper;
 
 import java.util.HashMap;
@@ -257,6 +258,7 @@ public class MemosAdapter extends CursorAdapter implements OnClickListener,
 			}
 			mCheckedItems.clear();
 			mOnItemSelectLisener.onCancelSelect();
+			new Evernote(mContext).sync(true, false, null);
 		}
 	}
 }

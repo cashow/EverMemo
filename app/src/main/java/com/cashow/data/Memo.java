@@ -4,6 +4,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 
 import com.cashow.utils.Logger;
+import com.evernote.client.android.EvernoteUtil;
+import com.evernote.edam.type.Note;
 
 import java.io.Serializable;
 
@@ -146,12 +148,64 @@ public class Memo implements Serializable {
 		return memo;
 	}
 
+	public static Memo buildInsertMemoFromNote(Note note) {
+		Memo memo = new Memo();
+		memo.setContent(note.getContent());
+		memo.setHash(note.getContentHash());
+		memo.setUpdatedTime(note.getUpdated());
+		memo.setCreatedTime(note.getCreated());
+		memo.setEnid(note.getGuid());
+		memo.setSyncStatus(NEED_NOTHING);
+		memo.mStatus = STATUS_COMMON;
+		memo.mCursorPosition = 0;
+		return memo;
+	}
+
+	public static Memo buildUpdateMemoFromNote(Note note, int _id) {
+		Memo memo = buildInsertMemoFromNote(note);
+		memo.setId(_id);
+		return memo;
+	}
+
 	public void setId(int _id) {
 		this._id = _id;
 	}
 
 	public String getTitle() {
 		return "EverMemo";
+	}
+
+	public Note toNote(String notebookGuid) {
+		Note note = toNote();
+		note.setNotebookGuid(notebookGuid);
+		return note;
+	}
+
+	public Note toNote() {
+		Note note = new Note();
+		note.setTitle(getTitle());
+		note.setContent(convertContentToEvernote());
+		return note;
+	}
+
+	public Note toUpdateNote() {
+		Note note = toNote();
+		note.setGuid(mEnid);
+		return note;
+	}
+
+	public Note toDeleteNote() {
+		Note note = new Note();
+		note.setGuid(mEnid);
+		return note;
+	}
+
+	private String convertContentToEvernote() {
+		String EvernoteContent = EvernoteUtil.NOTE_PREFIX
+				+ getContent().replace("<br>", "<br/>")
+				+ EvernoteUtil.NOTE_SUFFIX;
+		Logger.e(LogTag, "同步文字:" + EvernoteContent);
+		return EvernoteContent;
 	}
 
 	public Memo setContent(String content) {

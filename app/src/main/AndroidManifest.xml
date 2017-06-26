@@ -34,5 +34,8 @@
         </activity>
         <activity android:name="com.cashow.evermemo.SettingActivity" >
         </activity>
+        <activity
+            android:name="com.evernote.client.android.EvernoteOAuthActivity"
+            android:configChanges="orientation|keyboardHidden" />
     </application>
 </manifest>

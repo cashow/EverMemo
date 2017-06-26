@@ -25,6 +25,7 @@ import com.cashow.cashowevermemo.R;
 import com.cashow.data.Memo;
 import com.cashow.data.MemoDB;
 import com.cashow.data.MemoProvider;
+import com.cashow.sync.Evernote;
 
 import java.util.Date;
 import java.util.Timer;
@@ -41,6 +42,7 @@ public class MemoActivity extends ActionBarActivity implements OnClickListener,
 	private String mLastSaveContent;
 
 	private Timer mTimer;
+	private Evernote mEvernote;
 
 	private boolean mTextChanged = false;
 
@@ -80,6 +82,7 @@ public class MemoActivity extends ActionBarActivity implements OnClickListener,
 		}
 
 		mContentEditText.setOnKeyListener(this);
+		mEvernote = new Evernote(mContext);
 		findViewById(R.id.edit_container).setOnClickListener(this);
 	}
 
@@ -238,6 +241,9 @@ public class MemoActivity extends ActionBarActivity implements OnClickListener,
 								memo.getId()), values, null, null);
 			}
 		}
+		if (toLeave && mTextChanged) {
+			mEvernote.sync(true, false, null);
+		}
 	}
 
 	@Override
@@ -306,6 +312,7 @@ public class MemoActivity extends ActionBarActivity implements OnClickListener,
 			PreferenceManager.getDefaultSharedPreferences(mContext).edit()
 					.putInt(sEditCount, count).commit();
 		}
+		mEvernote.sync(true, false, null);
 		getWindow().setSoftInputMode(
 				WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		finish();
@@ -317,6 +324,7 @@ public class MemoActivity extends ActionBarActivity implements OnClickListener,
 			getContentResolver().delete(
 					ContentUris.withAppendedId(MemoProvider.MEMO_URI,
 							memo.getId()), null, null);
+			mEvernote.sync(true, false, null);
 		}
 		getWindow().setSoftInputMode(
 				WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);

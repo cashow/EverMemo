@@ -1,1 +1,1 @@
-include ':app', ':exgridview'
+include ':app', ':exgridview', ':evernoteex'
