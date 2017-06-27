@@ -18,20 +18,17 @@ import android.widget.TextView;
 
 import com.cashow.cashowevermemo.R;
 import com.cashow.data.Memo;
+import com.cashow.data.MemoColor;
 import com.cashow.data.MemoProvider;
 import com.cashow.evermemo.MemoActivity;
 import com.cashow.sync.Evernote;
 import com.cashow.utils.DateHelper;
-
-import java.util.HashMap;
 
 public class MemosAdapter extends CursorAdapter implements OnClickListener,
 		OnLongClickListener {
 
 	private LayoutInflater mLayoutInflater;
 
-	private boolean mCheckMode;
-	private HashMap<Integer, Memo> mCheckedItems;
 	private ItemLongPressedLisener mItemLongPressedLisener;
 
 	public MemosAdapter(Context context, Cursor c, int flags,
@@ -107,17 +104,9 @@ public class MemosAdapter extends CursorAdapter implements OnClickListener,
 			} else {
 				uploadView.setVisibility(View.INVISIBLE);
 			}
-			if (mCheckMode) {
-				if (isChecked(memo.getId())) {
-					hoverView
-							.setBackgroundResource(R.drawable.hover_multi_background_normal);
-				} else {
-					hoverView
-							.setBackgroundResource(R.drawable.hover_border_normal);
-				}
-			} else {
-				hoverView.setBackgroundResource(R.drawable.hover_background);
-			}
+			String memoColor = memo.getColor();
+            int colorId = MemoColor.getColorId(memoColor);
+            hoverView.setBackgroundColor(context.getResources().getColor(colorId));
 		}
 	}
 
@@ -136,13 +125,9 @@ public class MemosAdapter extends CursorAdapter implements OnClickListener,
         switch (v.getId()) {
         case R.id.hover:
             Memo memo = (Memo) v.getTag(R.string.memo_data);
-            if (mCheckMode) {
-                toggleCheckedId(memo.getId(), memo, v);
-            } else {
-                Intent intent = new Intent(mContext, MemoActivity.class);
-                intent.putExtra("memo", memo);
-                mContext.startActivity(intent);
-            }
+            Intent intent = new Intent(mContext, MemoActivity.class);
+            intent.putExtra("memo", memo);
+            mContext.startActivity(intent);
             break;
         default:
             break;
@@ -150,62 +135,14 @@ public class MemosAdapter extends CursorAdapter implements OnClickListener,
 	}
 
 	public interface ItemLongPressedLisener {
-		public void onLongPressed(int memoId);
-	}
-
-	public interface onItemSelectLisener {
-		public void onSelect();
-
-		public void onCancelSelect();
-	}
-
-	public void setCheckMode(boolean check) {
-		mCheckMode = check;
-		if (mCheckMode == false) {
-			mCheckedItems = null;
-		}
-		notifyDataSetChanged();
-	}
-
-	@SuppressLint("UseSparseArrays")
-	public void toggleCheckedId(int _id, Memo memo, View v) {
-		if (mCheckedItems == null) {
-			mCheckedItems = new HashMap<Integer, Memo>();
-		}
-		if (mCheckedItems.containsKey(_id) == false) {
-			mCheckedItems.put(_id, memo);
-//			mOnItemSelectLisener.onSelect();
-		} else {
-			mCheckedItems.remove(_id);
-//			mOnItemSelectLisener.onCancelSelect();
-		}
-		notifyDataSetChanged();
-	}
-
-	public boolean isChecked(int _id) {
-		if (mCheckedItems == null || mCheckedItems.containsKey(_id) == false) {
-			return false;
-		} else {
-			return true;
-		}
+		public void onLongPressed(Memo memo);
 	}
 
 	@Override
 	public boolean onLongClick(View v) {
         Memo memo = (Memo) v.getTag(R.string.memo_data);
-		if (mCheckMode == false) {
-			mItemLongPressedLisener.onLongPressed(memo.getId());
-			setCheckMode(true);
-		}
+        mItemLongPressedLisener.onLongPressed(memo);
 		return true;
-	}
-
-	public int getSelectedCount() {
-		if (mCheckedItems == null) {
-			return 0;
-		} else {
-			return mCheckedItems.size();
-		}
 	}
 
 	public void deleteSelectedMemos(int memoId) {

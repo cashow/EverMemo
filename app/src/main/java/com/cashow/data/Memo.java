@@ -59,6 +59,7 @@ public class Memo implements Serializable {
 	private String mContent;
 	private String mAttributes;
 	private String mStatus;
+	private String mColor;
 
 	public Memo() {
 		mCreatedTime = System.currentTimeMillis();
@@ -73,6 +74,11 @@ public class Memo implements Serializable {
 		mStatus = cursor.getString(cursor.getColumnIndex("status"));
 		mGuid = cursor.getString(cursor.getColumnIndex("guid"));
 		mEnid = cursor.getString(cursor.getColumnIndex("enid"));
+		mColor = cursor.getString(cursor.getColumnIndex("color"));
+
+		if (mColor == null) {
+            mColor = MemoColor.NORMAL;
+        }
 
 		mLastSyncTime = cursor.getLong(cursor.getColumnIndex("lastsynctime"));
 		mCreatedTime = cursor.getLong(cursor.getColumnIndex("createdtime"));
@@ -101,6 +107,7 @@ public class Memo implements Serializable {
 		values.put("lastsynctime", mLastSyncTime);
 		values.put("createdtime", mCreatedTime);
 		values.put("updatedtime", mUpdatedTime);
+		values.put("color", mColor);
 		values.put("status", mStatus);
 		values.put("attributes", mAttributes);
 		values.put("content", mContent);
@@ -119,6 +126,7 @@ public class Memo implements Serializable {
 		values.put("lastsynctime", mLastSyncTime);
 		values.put("createdtime", mCreatedTime);
 		values.put("updatedtime", mUpdatedTime);
+        values.put("color", mColor);
 		values.put("status", mStatus);
 		values.put("attributes", mAttributes);
 		values.put("content", mContent);
@@ -140,6 +148,7 @@ public class Memo implements Serializable {
 		memo.mSyncStatus = values.getAsInteger("syncstatus");
 		memo.setContent(values.getAsString("content"));
 		memo.mAttributes = values.getAsString("attributes");
+		memo.mColor = values.getAsString("color");
 		memo.mStatus = values.getAsString("status");
 		memo.mCreatedTime = values.getAsLong("createdtime");
 		memo.mUpdatedTime = values.getAsLong("updatedtime");
@@ -157,6 +166,7 @@ public class Memo implements Serializable {
 		memo.setEnid(note.getGuid());
 		memo.setSyncStatus(NEED_NOTHING);
 		memo.mStatus = STATUS_COMMON;
+        memo.mColor = MemoColor.NORMAL;
 		memo.mCursorPosition = 0;
 		return memo;
 	}
@@ -309,7 +319,15 @@ public class Memo implements Serializable {
 		setSyncStatus(NEED_SYNC_UP);
 	}
 
-	public boolean isNeedSyncUp() {
+    public String getColor() {
+        return mColor;
+    }
+
+    public void setColor(String color) {
+        this.mColor = color;
+    }
+
+    public boolean isNeedSyncUp() {
 		if (mSyncStatus == NEED_SYNC_UP) {
 			return true;
 		} else {

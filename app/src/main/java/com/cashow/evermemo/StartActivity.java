@@ -1,6 +1,8 @@
 package com.cashow.evermemo;
 
 import android.annotation.SuppressLint;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -32,6 +34,8 @@ import com.cashow.adapters.MemosAdapter;
 import com.cashow.adapters.MemosAdapter.ItemLongPressedLisener;
 import com.cashow.cashowevermemo.R;
 import com.cashow.custom.MemoPopupWindow;
+import com.cashow.data.Memo;
+import com.cashow.data.MemoColor;
 import com.cashow.data.MemoDB;
 import com.cashow.data.MemoProvider;
 import com.cashow.sync.Evernote;
@@ -262,7 +266,7 @@ public class StartActivity extends ActionBarActivity implements
     }
 
     @Override
-    public void onLongPressed(int memoId) {
+    public void onLongPressed(Memo memo) {
         if (memoPopupWindow == null) {
             memoPopupWindow = new MemoPopupWindow(mContext, new View.OnClickListener() {
                 @Override
@@ -270,27 +274,41 @@ public class StartActivity extends ActionBarActivity implements
                     memoPopupWindow.dismiss();
                     switch (v.getId()) {
                         case R.id.image_normal:
+                            updateMemoColor(memoPopupWindow.getMemo(), MemoColor.NORMAL);
                             break;
                         case R.id.image_green:
+                            updateMemoColor(memoPopupWindow.getMemo(), MemoColor.GREEN);
                             break;
                         case R.id.image_blue:
+                            updateMemoColor(memoPopupWindow.getMemo(), MemoColor.BLUE);
                             break;
                         case R.id.image_grey:
+                            updateMemoColor(memoPopupWindow.getMemo(), MemoColor.GREY);
                             break;
                         case R.id.image_yellow:
+                            updateMemoColor(memoPopupWindow.getMemo(), MemoColor.YELLOW);
                             break;
                         case R.id.image_red:
+                            updateMemoColor(memoPopupWindow.getMemo(), MemoColor.RED);
                             break;
                         case R.id.image_delete:
-                            deleteMemo(memoPopupWindow.getMemoId());
+                            deleteMemo(memoPopupWindow.getMemo().getId());
                             break;
                     }
                 }
             });
         }
-        memoPopupWindow.setMemoId(memoId);
+        memoPopupWindow.setMemo(memo);
         memoPopupWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content),
                 Gravity.CENTER, 0, 0);
+    }
+
+    private void updateMemoColor(Memo memo, String color) {
+        memo.setColor(color);
+        ContentValues values = memo.toContentValues();
+        getContentResolver().update(
+                ContentUris.withAppendedId(MemoProvider.MEMO_URI,
+                        memo.getId()), values, null, null);
     }
 
     private void deleteMemo(final int memoId) {

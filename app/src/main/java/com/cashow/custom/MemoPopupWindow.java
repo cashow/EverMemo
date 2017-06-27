@@ -9,9 +9,10 @@ import android.view.ViewGroup;
 import android.widget.PopupWindow;
 
 import com.cashow.cashowevermemo.R;
+import com.cashow.data.Memo;
 
 public class MemoPopupWindow extends PopupWindow {
-    private int memoId;
+    private Memo memo;
 
 	public MemoPopupWindow(Context context, View.OnClickListener itemsOnClick) {
 		super(context);
@@ -42,11 +43,11 @@ public class MemoPopupWindow extends PopupWindow {
         });
 	}
 
-    public int getMemoId() {
-        return memoId;
+    public Memo getMemo() {
+        return memo;
     }
 
-    public void setMemoId(int memoId) {
-        this.memoId = memoId;
+    public void setMemo(Memo memo) {
+        this.memo = memo;
     }
 }
